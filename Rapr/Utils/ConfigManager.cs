@@ -128,7 +128,7 @@ namespace Rapr.Utils
 
         internal static T GetDevNodeProperty<T>(uint devInst, DevPropKey propertyKey)
         {
-            return ReadDevNodeProperty<T>((buffer, size) =>
+            return ReadConfigManagerProperty<T>((buffer, size) =>
             {
                 uint requiredSize = size;
                 var result = NativeMethods.CM_Get_DevNode_Property(devInst, ref propertyKey,
@@ -137,7 +137,7 @@ namespace Rapr.Utils
             });
         }
 
-        private static T ReadDevNodeProperty<T>(Func<IntPtr, uint, (ConfigManagerResult Result, uint Type, uint Size)> read)
+        private static T ReadConfigManagerProperty<T>(Func<IntPtr, uint, (ConfigManagerResult Result, uint Type, uint Size)> read)
         {
             uint size = 2048;
             for (int attempt = 0; attempt < 3; attempt++)
@@ -179,32 +179,13 @@ namespace Rapr.Utils
 
         internal static T GetClassProperty<T>(Guid classGuid, DevPropKey propertyKey)
         {
-            const int bufferSize = 2048;
-            IntPtr propertyBufferPtr = Marshal.AllocHGlobal(bufferSize);
-            uint propertySize = bufferSize;
-
-            try
+            return ReadConfigManagerProperty<T>((buffer, size) =>
             {
-                if (NativeMethods.CM_Get_Class_Property(
-                    ref classGuid,
-                    ref propertyKey,
-                    out DevPropType propertyType,
-                    propertyBufferPtr,
-                    ref propertySize,
-                    0) == 0)
-                {
-                    if (propertySize > 0)
-                    {
-                        return DeviceHelper.ConvertPropToType<T>(propertyBufferPtr, propertyType);
-                    }
-                }
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(propertyBufferPtr);
-            }
-
-            return default(T);
+                uint requiredSize = size;
+                var result = NativeMethods.CM_Get_Class_Property(
+                    ref classGuid, ref propertyKey, out DevPropType propertyType, buffer, ref requiredSize, 0);
+                return (result, (uint)propertyType, requiredSize);
+            });
         }
 
         //

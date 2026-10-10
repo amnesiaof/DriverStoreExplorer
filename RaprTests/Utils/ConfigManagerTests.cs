@@ -16,7 +16,7 @@ namespace Rapr.Tests.Utils
     {
         private static readonly Func<Func<IntPtr, uint, (ConfigManager.ConfigManagerResult Result, uint Type, uint Size)>, string[]> ReadProperty =
             (Func<Func<IntPtr, uint, (ConfigManager.ConfigManagerResult Result, uint Type, uint Size)>, string[]>)typeof(ConfigManager)
-                .GetMethod("ReadDevNodeProperty", BindingFlags.Static | BindingFlags.NonPublic)
+                .GetMethod("ReadConfigManagerProperty", BindingFlags.Static | BindingFlags.NonPublic)
                 .MakeGenericMethod(typeof(string[]))
                 .CreateDelegate(typeof(Func<Func<IntPtr, uint, (ConfigManager.ConfigManagerResult Result, uint Type, uint Size)>, string[]>));
 
