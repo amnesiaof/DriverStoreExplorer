@@ -158,6 +158,7 @@ namespace Rapr.Utils
             if (libraryPtr != UIntPtr.Zero)
             {
                 var procPtr = NativeMethods.GetProcAddress(libraryPtr, methodName);
+                NativeMethods.FreeLibrary(libraryPtr);
                 return procPtr != UIntPtr.Zero;
             }
 
@@ -593,6 +594,10 @@ namespace Rapr.Utils
         {
             [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
             internal static extern UIntPtr LoadLibrary(string lpFileName);
+
+            [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool FreeLibrary(UIntPtr hLibModule);
 
             [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "GetProcAddress only comes in an ANSI flavor.")]
             [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true)]
