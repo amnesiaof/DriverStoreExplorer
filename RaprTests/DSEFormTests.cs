@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 using BrightIdeasSoftware;
@@ -162,7 +162,7 @@ namespace Rapr.Tests
         private static void WithSelectionForm(Action<DSEForm, MyObjectListView> test)
         {
             // Avoid startup/elevation; only the in-memory selection controls are exercised.
-            var form = (DSEForm)FormatterServices.GetUninitializedObject(typeof(DSEForm));
+            var form = (DSEForm)RuntimeHelpers.GetUninitializedObject(typeof(DSEForm));
             GC.SuppressFinalize(form);
 
             using (var list = new MyObjectListView { CheckBoxes = true })

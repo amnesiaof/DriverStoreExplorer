@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -24,8 +24,6 @@ namespace Rapr
 
         public async Task<VersionInfo> GetLatestVersionInfo()
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             this.httpClient.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
@@ -82,8 +80,6 @@ namespace Rapr
                 throw new InvalidOperationException("Download URL is not from a trusted GitHub domain.");
             }
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             string tempBaseDir = Path.Combine(Path.GetTempPath(), "DriverStoreExplorer");
             string downloadFileName = Path.GetFileName(versionInfo.DownloadUrl.LocalPath);
             string tempZipPath = Path.Combine(tempBaseDir, downloadFileName);
@@ -139,7 +135,7 @@ namespace Rapr
                 sourceDir = subDirs[0];
             }
 
-            InstallUpdate(sourceDir, Assembly.GetExecutingAssembly().Location);
+            InstallUpdate(sourceDir, DSEFormHelper.GetApplicationPath());
 
             // Clean up temp folder
             try { Directory.Delete(tempBaseDir, true); } catch { }
@@ -329,46 +325,34 @@ namespace Rapr
             }
         }
 
+        /// <summary>
+        /// Rejects any payload that is not the IL-only Rapr executable. The PE is read directly:
+        /// AppDomain isolation and reflection-only loading do not exist on .NET, and reading the
+        /// file cannot be poisoned by an earlier payload the way reflection-only load caching was.
+        /// </summary>
         private static void ValidateUpdateExecutable(string path)
         {
-            // Isolate reflection-only loads so retries never reuse an earlier payload's metadata.
-            var domain = AppDomain.CreateDomain("Update payload validation");
-            try
+            using (var stream = File.OpenRead(path))
+            using (var peReader = new PEReader(stream))
             {
-                var validator = (ExecutableValidator)domain.CreateInstanceFromAndUnwrap(
-                    typeof(UpdateManager).Assembly.Location, typeof(ExecutableValidator).FullName);
-                validator.Validate(path, typeof(UpdateManager).Assembly.GetName().Name);
-            }
-            finally
-            {
-                AppDomain.Unload(domain);
-            }
-        }
+                var headers = peReader.PEHeaders;
+                var machine = headers.CoffHeader.Machine;
 
-        public sealed class ExecutableValidator : MarshalByRefObject
-        {
-            public void Validate(string path, string expectedName)
-            {
-                var assembly = Assembly.ReflectionOnlyLoad(File.ReadAllBytes(path));
-                assembly.ManifestModule.GetPEKind(out PortableExecutableKinds kind, out ImageFileMachine machine);
-                if (assembly.GetName().Name != expectedName
-                    || assembly.EntryPoint == null || !assembly.EntryPoint.IsStatic
-                    || (kind & PortableExecutableKinds.ILOnly) == 0
-                    || (machine != ImageFileMachine.I386 && machine != ImageFileMachine.AMD64)
-                    || (machine == ImageFileMachine.AMD64 && !Environment.Is64BitOperatingSystem))
+                if ((headers.CoffHeader.Characteristics & Characteristics.Dll) != 0
+                    || headers.CorHeader == null || (headers.CorHeader.Flags & CorFlags.ILOnly) == 0
+                    || (machine != Machine.I386 && machine != Machine.Amd64)
+                    || (machine == Machine.Amd64 && !Environment.Is64BitOperatingSystem)
+                    || !peReader.HasMetadata)
                 {
                     throw new InvalidDataException();
                 }
 
-                using (var reader = new BinaryReader(File.OpenRead(path)))
+                var metadata = peReader.GetMetadataReader();
+
+                if (metadata.GetString(metadata.GetAssemblyDefinition().Name) != typeof(UpdateManager).Assembly.GetName().Name
+                    || headers.CorHeader.EntryPointTokenOrRelativeVirtualAddress == 0)
                 {
-                    reader.BaseStream.Position = 0x3c;
-                    int peOffset = reader.ReadInt32();
-                    reader.BaseStream.Position = peOffset + 22;
-                    if ((reader.ReadUInt16() & 0x2000) != 0)
-                    {
-                        throw new InvalidDataException();
-                    }
+                    throw new InvalidDataException();
                 }
             }
         }

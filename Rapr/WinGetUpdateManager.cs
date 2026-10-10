@@ -60,7 +60,7 @@ namespace Rapr
         public Task ApplyUpdateAsync(VersionInfo versionInfo, IProgress<float> progress)
         {
             int pid = Process.GetCurrentProcess().Id;
-            string exePath = Assembly.GetExecutingAssembly().Location;
+            string exePath = DSEFormHelper.GetApplicationPath();
 
             string scriptDir = Path.Combine(Path.GetTempPath(), "DriverStoreExplorer");
             if (!Directory.Exists(scriptDir))

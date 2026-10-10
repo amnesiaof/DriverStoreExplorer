@@ -1,6 +1,11 @@
 ﻿using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+
+// GenerateAssemblyInfo is disabled, so the SDK cannot emit the platform
+// attribute that CA1416 needs to stop flagging every WinForms call site.
+[assembly: SupportedOSPlatform("windows7.0")]
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information

@@ -90,7 +90,7 @@ namespace Rapr
                     }
                 }
 
-                return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+                return System.IO.Path.GetFileNameWithoutExtension(DSEFormHelper.GetApplicationPath());
             }
         }
 

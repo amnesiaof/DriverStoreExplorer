@@ -1,17 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
     <OutputType>WinExe</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Rapr.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.401">
@@ -19,20 +25,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Dism" Version="6.1.0" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.WindowsAPICodePack.Core" Version="1.1.0" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.WindowsAPICodePack.Shell" Version="1.1.0" GeneratePathProperty="true" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" GeneratePathProperty="true" />
-    <PackageReference Include="ObjectListView.Official" Version="2.9.1" GeneratePathProperty="true" />
+    <PackageReference Include="ObjectListView.Updated" Version="2.9.3" GeneratePathProperty="true" />
     <PackageReference Include="PortableSettingsProvider" Version="0.2.5" GeneratePathProperty="true" />
-    <PackageReference Include="Resource.Embedder" Version="2.2.0" />
-    <PackageReference Include="StrongNamer" Version="0.2.5" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
@@ -69,15 +64,5 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="$(PkgMicrosoft_Dism)\lib\net472\Microsoft.Dism.dll" Visible="false" />
-    <EmbeddedResource Include="$(PkgNewtonsoft_Json)\lib\net45\Newtonsoft.Json.dll" Visible="false" />
-    <EmbeddedResource Include="$(PkgObjectListView_Official)\lib\net20\ObjectListView.dll" Visible="false" />
-    <EmbeddedResource Include="$(PkgMicrosoft_WindowsAPICodePack_Core)\lib\Microsoft.WindowsAPICodePack.dll" Visible="false" />
-    <EmbeddedResource Include="$(PkgMicrosoft_WindowsAPICodePack_Shell)\lib\Microsoft.WindowsAPICodePack.Shell.dll" Visible="false" />
-    <EmbeddedResource Include="$(IntermediateOutputPath)SignedAssemblies\PortableSettingsProvider.dll" Visible="false">
-      <LogicalName>$(AssemblyName).PortableSettingsProvider.dll</LogicalName>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>

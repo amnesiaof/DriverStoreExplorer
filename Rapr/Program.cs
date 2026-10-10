@@ -13,29 +13,6 @@ namespace Rapr
 {
     public static class Program
     {
-        static Program()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += ResolveEventHandler;
-        }
-
-        private static Assembly ResolveEventHandler(object sender, ResolveEventArgs args)
-        {
-            Assembly assembly = Assembly.GetEntryAssembly();
-            string resourceName = $"{assembly.EntryPoint.DeclaringType.Namespace}.{new AssemblyName(args.Name).Name}.dll";
-
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                {
-                    return null;
-                }
-
-                byte[] assemblyData = new byte[stream.Length];
-                _ = stream.Read(assemblyData, 0, assemblyData.Length);
-                return Assembly.Load(assemblyData);
-            }
-        }
-
         private static void AddEnvironmentPaths(string path)
         {
             var paths = new[] { Environment.GetEnvironmentVariable("PATH") ?? string.Empty, path };
@@ -65,7 +42,7 @@ namespace Rapr
             if (configDirectory.Exists)
             {
                 // Remove configurations created by not strong signed app.
-                foreach (var dir in configDirectory.EnumerateDirectories(Assembly.GetEntryAssembly().ManifestModule.Name + "_Url_*", SearchOption.TopDirectoryOnly))
+                foreach (var dir in configDirectory.EnumerateDirectories(Assembly.GetEntryAssembly().GetName().Name + "_Url_*", SearchOption.TopDirectoryOnly))
                 {
                     dir.Delete(recursive: true);
                 }

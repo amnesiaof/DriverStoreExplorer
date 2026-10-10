@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Rapr
 {
@@ -15,6 +14,7 @@ namespace Rapr
 
         private DriverStoreType storeType;
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public DriverStoreType StoreType
         {
             get
@@ -30,6 +30,7 @@ namespace Rapr
 
         private string offlineStoreLocation;
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string OfflineStoreLocation
         {
             get
@@ -98,17 +99,11 @@ namespace Rapr
 
         private void ButtonBrowseLocation_Click(object sender, EventArgs e)
         {
-            using (var dialog = new CommonOpenFileDialog
+            using (var dialog = new FolderBrowserDialog())
             {
-                IsFolderPicker = true,
-                Title = Lang.Language.Dialog_Select_Offline_Store_Title,
-            })
-            {
-                CommonFileDialogResult result = dialog.ShowDialog();
-
-                if (result == CommonFileDialogResult.Ok)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string selectedPath = dialog.FileName;
+                    string selectedPath = dialog.SelectedPath;
                     
                     // Validate that the selected directory contains a Windows folder
                     if (!IsValidOfflineStoreLocation(selectedPath))

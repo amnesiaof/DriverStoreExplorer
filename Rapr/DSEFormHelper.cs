@@ -26,26 +26,22 @@ namespace Rapr
         private static readonly Version Win10Version = new Version(10, 0);
         private static readonly Version Win11Version = new Version(10, 0, 22000);
 
+        /// <summary>
+        /// Full path of the running executable. Assembly.Location is empty in a single-file publish,
+        /// so prefer the process image and resolve it when it is a symbolic link.
+        /// </summary>
+        public static string GetApplicationPath()
+        {
+            string path = Environment.ProcessPath ?? Path.TrimEndingDirectorySeparator(AppContext.BaseDirectory);
+
+            return new FileInfo(path).Attributes.HasFlag(FileAttributes.ReparsePoint)
+                ? GetFinalPathName(path)
+                : path;
+        }
+
         public static string GetApplicationFolder()
         {
-            string assemblyLocation = Assembly.GetExecutingAssembly().Location;
-
-            if (!string.IsNullOrEmpty(assemblyLocation))
-            {
-                // Check if the file is a symbolic link
-                FileInfo fileInfo = new FileInfo(assemblyLocation);
-
-                if (fileInfo.Attributes.HasFlag(FileAttributes.ReparsePoint))
-                {
-                    // Resolve the real path
-                    assemblyLocation = GetFinalPathName(assemblyLocation);
-                }
-                return Path.GetDirectoryName(assemblyLocation);
-            }
-            else
-            {
-                return AppDomain.CurrentDomain.BaseDirectory;
-            }
+            return Path.GetDirectoryName(GetApplicationPath());
         }
 
         private static string GetFinalPathName(string path)
@@ -134,7 +130,7 @@ namespace Rapr
             ProcessStartInfo processInfo = new ProcessStartInfo
             {
                 Verb = "runas",
-                FileName = Assembly.GetExecutingAssembly().Location
+                FileName = GetApplicationPath()
             };
 
             try
@@ -162,7 +158,7 @@ namespace Rapr
             {
                 using (var key = Registry.CurrentUser.OpenSubKey(AppCompatRegistry))
                 {
-                    string valueStr = (string)key?.GetValue(Assembly.GetExecutingAssembly().Location);
+                    string valueStr = (string)key?.GetValue(GetApplicationPath());
                     return !string.IsNullOrEmpty(valueStr)
                         && valueStr.Split(' ').Any(s => s == RunAsAdminRegistryValue);
                 }
@@ -175,7 +171,7 @@ namespace Rapr
                     if (key != null)
                     {
                         List<string> values = new List<string> { "~" };
-                        string keyStr = Assembly.GetExecutingAssembly().Location;
+                        string keyStr = GetApplicationPath();
                         string valueStr = (string)key.GetValue(keyStr);
 
                         if (!string.IsNullOrEmpty(valueStr))
@@ -287,7 +283,7 @@ namespace Rapr
                 }
             }
 
-            string currentFolder = Path.GetDirectoryName(assembly.Location);
+            string currentFolder = AppContext.BaseDirectory;
 
             try
             {

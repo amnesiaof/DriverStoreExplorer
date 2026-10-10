@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,7 +17,6 @@ using BrightIdeasSoftware;
 
 using JR.Utils.GUI.Forms;
 
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Rapr.Lang;
 using Rapr.Properties;
@@ -600,13 +599,11 @@ namespace Rapr
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         private async void ButtonAddDriver_Click(object sender, EventArgs e)
         {
-            using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true, EnsurePathExists = true, Title = Language.Dialog_Select_Inf_Folder })
+            using (var dialog = new FolderBrowserDialog())
             {
-                CommonFileDialogResult dialogResult = dialog.ShowDialog();
-
-                if (dialogResult == CommonFileDialogResult.Ok)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    string infPath = dialog.FileName;
+                    string infPath = dialog.SelectedPath;
                     bool installDriver = this.cbAddInstall.Checked;
 
                     var infFiles = FindInfFile(infPath).ToList();
@@ -1378,18 +1375,16 @@ namespace Rapr
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         private async void ButtonExportAllDrivers_Click(object sender, EventArgs e)
         {
-            using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
+            using (var dialog = new FolderBrowserDialog())
             {
-                CommonFileDialogResult dialogResult = dialog.ShowDialog();
-
-                if (dialogResult == CommonFileDialogResult.Ok)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     try
                     {
                         this.StartOperation();
                         this.ShowStatus(Status.Normal, Language.Status_Exporting_All_Drivers);
 
-                        bool result = await Task.Run(() => this.driverStore.ExportAllDrivers(dialog.FileName)).ConfigureAwait(true);
+                        bool result = await Task.Run(() => this.driverStore.ExportAllDrivers(dialog.SelectedPath)).ConfigureAwait(true);
 
                         if (result)
                         {
@@ -1446,26 +1441,22 @@ namespace Rapr
 
         private async void CtxMenuExportDriver_Click(object sender, System.EventArgs e)
         {
-            using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
+            using (var dialog = new FolderBrowserDialog())
             {
-                CommonFileDialogResult dialogResult = dialog.ShowDialog();
-
-                if (dialogResult == CommonFileDialogResult.Ok)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    await ExportDrivers(this.lstDriverStoreEntries.SelectedObjects, dialog.FileName);
+                    await ExportDrivers(this.lstDriverStoreEntries.SelectedObjects, dialog.SelectedPath);
                 }
             }
         }
 
         private async void ButtonExportDrivers_Click(object sender, System.EventArgs e)
         {
-            using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
+            using (var dialog = new FolderBrowserDialog())
             {
-                CommonFileDialogResult dialogResult = dialog.ShowDialog();
-
-                if (dialogResult == CommonFileDialogResult.Ok)
+                if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    await ExportDrivers(this.lstDriverStoreEntries.CheckedObjects, dialog.FileName);
+                    await ExportDrivers(this.lstDriverStoreEntries.CheckedObjects, dialog.SelectedPath);
                 }
             }
         }

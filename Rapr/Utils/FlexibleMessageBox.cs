@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -816,11 +817,13 @@ namespace JR.Utils.GUI.Forms
             /// <summary>
             /// The text that is been used for the heading.
             /// </summary>
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public string CaptionText { get; set; }
 
             /// <summary>
             /// The text that is been used in the FlexibleMessageBoxForm.
             /// </summary>
+            [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
             public string MessageText { get; set; }
 
             #endregion
