@@ -358,14 +358,17 @@ namespace Rapr.Utils
                             Trace.TraceInformation($"[Result_start] ---- {Environment.NewLine}{result}[----- Result_End]");
                         }
 
-                        if (option == PnpUtilOption.Delete || option == PnpUtilOption.ForceDelete)
+                        // pnputil reports failures through its exit code; its output is localized, so
+                        // parsing it is not a locale-independent signal. We pass one INF per call, which
+                        // is what makes the documented return values actionable here.
+                        // 1641 (ERROR_SUCCESS_REBOOT_INITIATED) and 3010 (ERROR_SUCCESS_REBOOT_REQUIRED)
+                        // are documented successes. 259 (ERROR_NO_MORE_ITEMS) means the target already
+                        // has a better driver, which the caller asked for, so it stays a failure.
+                        // https://learn.microsoft.com/windows-hardware/drivers/devtest/pnputil-return-values
+                        if (process.ExitCode != 0 && process.ExitCode != 1641 && process.ExitCode != 3010)
                         {
-                            // [jenda_] Really don't know, how to recognize error without language-specific string recognition :(
-                            // [jenda_] But those errors should contain ":"
-                            if (output.Contains(":"))     //"Deleting the driver package failed"
-                            {
-                                retVal = false;
-                            }
+                            Trace.TraceError($"pnputil {option} failed with exit code {process.ExitCode}.");
+                            retVal = false;
                         }
 
                         if (option == PnpUtilOption.Add || option == PnpUtilOption.AddInstall)
@@ -398,14 +401,6 @@ namespace Rapr.Utils
                                 retVal = false;
                             }
                         }
-                    }
-
-                    // pnputil reports failures through its exit code. Its output is localized,
-                    // so the exit code is the only locale-independent signal.
-                    if (process.ExitCode != 0)
-                    {
-                        Trace.TraceError($"pnputil {option} failed with exit code {process.ExitCode}.");
-                        retVal = false;
                     }
                 }
             }
