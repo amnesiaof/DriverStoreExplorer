@@ -399,6 +399,14 @@ namespace Rapr.Utils
                             }
                         }
                     }
+
+                    // pnputil reports failures through its exit code. Its output is localized,
+                    // so the exit code is the only locale-independent signal.
+                    if (process.ExitCode != 0)
+                    {
+                        Trace.TraceError($"pnputil {option} failed with exit code {process.ExitCode}.");
+                        retVal = false;
+                    }
                 }
             }
             catch (Exception ex) when (
