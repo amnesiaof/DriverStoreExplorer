@@ -13,6 +13,8 @@ using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
+using BrightIdeasSoftware;
+
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 
@@ -42,6 +44,41 @@ namespace Rapr
         public static string GetApplicationFolder()
         {
             return Path.GetDirectoryName(GetApplicationPath());
+        }
+
+        /// <summary>
+        /// Persist the column widths. ObjectListView.SaveState relies on BinaryFormatter, which
+        /// .NET 10 removed, so the widths are written by hand instead.
+        /// </summary>
+        public static string SaveColumnState(ObjectListView listView)
+        {
+            return string.Join(";", listView.Columns.Cast<ColumnHeader>().Select(c => c.Width.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        /// <summary>
+        /// Restores a state written by SaveColumnState. Blobs written by older versions are ignored.
+        /// </summary>
+        public static void RestoreColumnState(ObjectListView listView, string state)
+        {
+            if (string.IsNullOrEmpty(state))
+            {
+                return;
+            }
+
+            ColumnHeader[] columns = listView.Columns.Cast<ColumnHeader>().ToArray();
+            string[] parts = state.Split(';');
+            if (parts.Length != columns.Length)
+            {
+                return;
+            }
+
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out int width) && width > 0)
+                {
+                    columns[i].Width = width;
+                }
+            }
         }
 
         private static string GetFinalPathName(string path)

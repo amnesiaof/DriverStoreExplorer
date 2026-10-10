@@ -218,6 +218,28 @@ namespace Rapr.Tests
             });
         }
 
+        [TestMethod]
+        public void ColumnStateRoundTripsWithoutBinaryFormatter()
+        {
+            using (var list = new ObjectListView())
+            {
+                list.Columns.Add(new OLVColumn { Text = "A" });
+                list.Columns.Add(new OLVColumn { Text = "B" });
+                list.Columns[0].Width = 111;
+
+                string state = DSEFormHelper.SaveColumnState(list);
+                list.Columns[0].Width = 222;
+
+                DSEFormHelper.RestoreColumnState(list, state);
+                Assert.AreEqual(111, list.Columns[0].Width);
+
+                // Blobs written by ObjectListView.SaveState on older versions must be ignored.
+                list.Columns[0].Width = 222;
+                DSEFormHelper.RestoreColumnState(list, Convert.ToBase64String(new byte[64]));
+                Assert.AreEqual(222, list.Columns[0].Width);
+            }
+        }
+
         private static bool IsActionEnabled(DSEForm form, string name)
         {
             var action = typeof(DSEForm).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(form);

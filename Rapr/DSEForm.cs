@@ -991,7 +991,7 @@ namespace Rapr
         {
             if ((sender as ToolStripMenuItem)?.Tag is CultureInfo ci)
             {
-                byte[] driverStoreViewState = this.lstDriverStoreEntries.SaveState();
+                string driverStoreViewState = DSEFormHelper.SaveColumnState(this.lstDriverStoreEntries);
 
                 Thread.CurrentThread.CurrentCulture = ci;
                 Thread.CurrentThread.CurrentUICulture = ci;
@@ -1006,7 +1006,7 @@ namespace Rapr
                 this.RightToLeft = ci.TextInfo.IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
                 this.RightToLeftLayout = ci.TextInfo.IsRightToLeft;
                 this.SetupListViewColumns();
-                this.lstDriverStoreEntries.RestoreState(driverStoreViewState);
+                DSEFormHelper.RestoreColumnState(this.lstDriverStoreEntries, driverStoreViewState);
                 this.lstDriverStoreEntries.RightToLeft = this.RightToLeft;
                 this.lstDriverStoreEntries.RightToLeftLayout = this.RightToLeftLayout;
                 this.UpdateDriverStore(this.driverStore);
@@ -1072,13 +1072,7 @@ namespace Rapr
 
         private void DSEForm_Load(object sender, EventArgs e)
         {
-            try
-            {
-                this.lstDriverStoreEntries.RestoreState(Convert.FromBase64String(Settings.Default.DriverStoreViewState));
-            }
-            catch (FormatException)
-            {
-            }
+            DSEFormHelper.RestoreColumnState(this.lstDriverStoreEntries, Settings.Default.DriverStoreViewState);
             this.RightToLeft = Thread.CurrentThread.CurrentCulture.TextInfo.IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
             this.RightToLeftLayout = Thread.CurrentThread.CurrentCulture.TextInfo.IsRightToLeft;
             this.lstDriverStoreEntries.RightToLeft = this.RightToLeft;
@@ -1102,7 +1096,7 @@ namespace Rapr
 
         private void DSEForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Settings.Default.DriverStoreViewState = Convert.ToBase64String(this.lstDriverStoreEntries.SaveState());
+            Settings.Default.DriverStoreViewState = DSEFormHelper.SaveColumnState(this.lstDriverStoreEntries);
 
             Settings.Default.WindowState = this.WindowState;
             Settings.Default.WindowLocation = this.Location;
